@@ -1,5 +1,7 @@
 # sesam-redis
-Sample REDIS REST datasource and sink for Sesam
+REDIS adapter for Sesam
+
+[![Build Status](https://travis-ci.org/sesam-community/redis.svg?branch=master)](https://travis-ci.org/sesam-community/redis)
 
 The service tekes the following parameters:
 
