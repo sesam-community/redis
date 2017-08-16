@@ -1,5 +1,5 @@
 FROM python:3-alpine
-MAINTAINER Graham Moore "graham.moore@sesam.io"
+MAINTAINER Baard H. Rehn Johansen "baard.johansen@sesam.io"
 COPY ./service /service
 WORKDIR /service
 RUN pip install -r requirements.txt

@@ -1,4 +1,4 @@
-from flask import Flask, Response
+from flask import Flask, Response, request
 import json
 import os
 import redis
@@ -12,26 +12,26 @@ db = os.environ.get("DB", 0)
 r = redis.StrictRedis(host=host, decode_responses=True, port=port, db=db)
 
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def get_entities():
     def generate():
         first = True
         yield "["
         for key in r.scan_iter():
             # do something with the key
-            type = r.type(key)
-            entity = {"_id": key, "redis_type": type}
-            if type == "hash":
+            redis_type = r.type(key)
+            entity = {"_id": key, "redis_type": redis_type}
+            if redis_type == "hash":
                 info = r.hgetall(key)
                 for vkey, value in info.items():
                     entity[vkey] = value
-            elif type == "zset":
+            elif redis_type == "zset":
                 info = r.zscan(key, 0)
                 # info[0] just contains the set size
                 for (a, b) in enumerate(info[1]):
                     entity[b[0]] = b[1]
             else:
-                logger.warn("key type %s is not supported" % type)
+                logger.warn("key redis_type %s is not supported" % redis_type)
 
             if not first:
                 yield ","
@@ -41,7 +41,24 @@ def get_entities():
 
     return Response(generate(), mimetype='application/json')
 
-# TODO implement POST
+
+@app.route('/', methods=['POST'])
+def post_entities():
+    entities = request.get_json()
+    for entity in entities:
+        entity_id = entity["_id"]
+        redis_type = entity.get("redis_type", "hash")
+        if redis_type == "hash":
+            def update(k, v): r.hset(entity_id, k, v)
+        elif redis_type == "zset":
+            def update(k, v): r.zadd(entity_id, v, k)
+        else:
+            logger.warn("redis_type %s is not supported" % redis_type)
+            continue
+        for key in entity:
+            if key not in ("_id", "redis_type"):
+                update(key, entity[key])
+    return Response("Thanks!", mimetype='text/plain')
 
 if __name__ == '__main__':
     # Set up logging
