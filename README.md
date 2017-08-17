@@ -11,6 +11,24 @@ The service tekes the following parameters:
 
 `db = Which database id (0-15) you want to use (Default = 0)`
 
+## Example config
+
+```
+{
+  "_id": "my-redis",
+  "type": "system:microservice",
+  "docker": {
+    "environment": {
+      "DB": "0",
+      "HOST": "localhost",
+      "PORT": "6379"
+    },
+    "image": "sesamcommunity/redis",
+    "port": 5000
+  }
+}
+```
+
 ## Supported datatypes
 
 The datatypes hash and zset are currently supported, other datatypes are ignored.
